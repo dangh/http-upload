@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Created by null on 03/09/14.
+ * @update 18/01/16.
  */
 var formidable = require('formidable'),
   http = require('http'),
@@ -12,15 +12,17 @@ var formidable = require('formidable'),
 if (argv.help || argv.h) {
   console.log('--port xxx           The port to listen on.');
   console.log('--upload-dir xxx     The directory to upload to.');
+  console.log('--upload-method xxx  The method to catch.');
 }
 else {
 
   var port = argv.port || 8989;
   var uploadDir = argv['upload-dir'] || './';
+  var uploadMethod = argv['upload-method'] || 'post';
 
 
   http.createServer(function (req, res) {
-    if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
+    if (req.url == '/upload' && req.method.toLowerCase() == uploadMethod) {
       // parse a file upload
       var form = new formidable.IncomingForm({
         uploadDir: uploadDir, multiples: true
