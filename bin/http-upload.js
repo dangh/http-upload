@@ -42,7 +42,7 @@ else {
           });
 
           res.writeHead(200, {'content-type': 'text/html'});
-          res.end('<h1>Files uploaded</h1><script>setTimeout(function(){ location.href = \'/\'; }, 2000);</script>');
+          res.end('<h1>Files uploaded</h1>');
 
 //        res.write('Received upload:\n\n');
 //        res.end(util.inspect(files));
@@ -56,7 +56,7 @@ else {
     // show a file upload form
     res.writeHead(200, {'content-type': 'text/html'});
     res.end(
-        '<form action="/upload" enctype="multipart/form-data" method="post">' +
+        '<form action="/upload" enctype="multipart/form-data" method="' + uploadMethod + '">' +
         '<input type="file" name="upload" multiple="multiple"><br>' +
         '<input type="submit" value="Upload">' +
         '</form>'
@@ -64,5 +64,7 @@ else {
   }).listen(port);
 
   console.log('Listening on port:' + port);
+  console.log('Upload dir:' + uploadDir);
+  console.log('Upload method:' + uploadMethod);
 
 }
