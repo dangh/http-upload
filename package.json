@@ -1,6 +1,6 @@
 {
   "name": "http-upload-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
   "bin": "bin/http-upload.js",
   "scripts": {
