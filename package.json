@@ -1,6 +1,6 @@
 {
-  "name": "http-upload",
-  "version": "0.0.2",
+  "name": "http-upload-server",
+  "version": "0.1.0",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
   "bin": "bin/http-upload.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/McNull/http-upload.git"
+    "url": "git://github.com/Vunb/http-upload.git"
   },
   "keywords": [
     "http",
@@ -18,9 +18,9 @@
   "author": " (null)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/McNull/http-upload/issues"
+    "url": "https://github.com/Vunb/http-upload/issues"
   },
-  "homepage": "https://github.com/McNull/http-upload",
+  "homepage": "https://github.com/Vunb/http-upload",
   "dependencies": {
     "formidable": "~1.0.15",
     "minimist": "^1.1.0"
