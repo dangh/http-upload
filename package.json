@@ -1,9 +1,10 @@
 {
   "name": "http-upload-server",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
   "bin": "bin/http-upload.js",
   "scripts": {
+    "start": "node ./bin/http-upload.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,7 +16,7 @@
     "fileupload",
     "upload"
   ],
-  "author": " (null)",
+  "author": "Vunb",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Vunb/http-upload/issues"
