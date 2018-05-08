@@ -1,29 +1,15 @@
 {
-  "name": "http-upload-server",
-  "version": "0.1.2",
+  "name": "cactus",
+  "version": "1.0.0",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
-  "bin": "bin/http-upload.js",
+  "bin": "bin/cactus.js",
   "scripts": {
-    "start": "node ./bin/http-upload.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/cactus.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/Vunb/http-upload.git"
-  },
-  "keywords": [
-    "http",
-    "fileupload",
-    "upload"
-  ],
-  "author": "Vunb",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Vunb/http-upload/issues"
-  },
-  "homepage": "https://github.com/Vunb/http-upload",
+  "homepage": "https://github.com/dangh/cactus",
   "dependencies": {
-    "formidable": "~1.0.15",
-    "minimist": "^1.1.0"
+    "formidable": "^1.2.1",
+    "ip": "^1.1.5"
   }
 }
