@@ -4,6 +4,12 @@ Simple command line utility that allows uploading files to the current directory
 
 # Install
 
-```js
+```
 npm install dangh/cactus -g
+```
+
+# Usage
+
+```
+cactus 5000
 ```
