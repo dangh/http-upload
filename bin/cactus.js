@@ -126,27 +126,30 @@ function html({ uploadedCount /*: number */ }) /*: string */ {
   <script type="text/javascript">
     function emojiToDataUri(emoji, size) {
       size = size || 32
+
       const canvas = document.createElement('canvas')
-      const context = canvas.getContext('2d')
       canvas.width = size
       canvas.height = size
+
+      const context = canvas.getContext('2d')
       context.font = size + 'px sans-serif'
       context.textAlign = 'center'
       context.textBaseline = 'top'
       context.fillText(emoji, size / 2, 0)
+
       return canvas.toDataURL()
     }
 
     function setFavicon(src) {
       let link = document.querySelector('link[rel*=icon]')
-      if (link) {
-        link.href = src
-      } else {
+
+      if (!link) {
         link = document.createElement('link')
         link.rel = 'shortcut icon'
-        link.href = src
         document.head.appendChild(link)
       }
+
+      link.href = src
     }
 
     function canUseBase64Favicon() {
@@ -154,17 +157,17 @@ function html({ uploadedCount /*: number */ }) /*: string */ {
       return /MSIE|rv:11\.0|Edge|(^((?!Chrome|Android).)*Safari)/.test(window.navigator.userAgent) === false
     }
 
-    function setFavmoji(emoji) {
+    function setFavemoji(emoji) {
       if (canUseBase64Favicon()) {
         return setFavicon(emojiToDataUri(emoji))
       }
 
       // Show the emoji in the title instead
-      window.__titleWithoutFavmoji = window.__titleWithoutFavmoji || document.title || ''
-      document.title = emoji + ' ' + window.__titleWithoutFavmoji
+      window.__titleWithoutEmoji = window.__titleWithoutEmoji || document.title || ''
+      document.title = emoji + ' ' + window.__titleWithoutEmoji
     }
 
-    setFavmoji('🌵')
+    setFavemoji('🌵')
   </script>
 </body>
 </html>
