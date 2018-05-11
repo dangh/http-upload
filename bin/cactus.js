@@ -121,7 +121,7 @@ function html({ uploadedCount /*: number */ }) /*: string */ {
     <div class="🎉">${resultMessage}</div>
   </div>
   <form action="/" enctype="multipart/form-data" method="post">
-    <input type="file" name="upload" multiple="multiple" onChange="this.form.submit();">
+    <input type="file" name="upload" multiple="multiple" onChange="this.form.submit();" onDragOver="return false;">
   </form>
   <script type="text/javascript">
     function emojiToDataUri(emoji, size) {
