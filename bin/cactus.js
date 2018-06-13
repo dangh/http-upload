@@ -11,8 +11,12 @@ const IP_ADDR = ip.address()
 const PORT = Number(process.argv[2]) || 8989
 const UPLOAD_DIR = './'
 
+let prefix = require('os').platform() === 'win32'
+  ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
+  : { good: '🌵', bad: '😵' }
+
 http.createServer(handle).listen(PORT)
-console.log(`\n🌵 Serving on http://${IP_ADDR}:${PORT}`, '\n')
+console.log(`\n${prefix.good} Serving on http://${IP_ADDR}:${PORT}`, '\n')
 
 function handle(req, res) {
   ;({
@@ -38,10 +42,10 @@ function handle(req, res) {
         let tasks = uploadedFiles.map(async file => {
           try {
             let path = await saveFile(file, UPLOAD_DIR)
-            console.log('🌵 File uploaded:', path)
+            console.log(prefix.good, 'File uploaded:', path)
             successCount++
           } catch (err) {
-            console.log('😵 Failed to rename:', err)
+            console.log(prefix.bad, 'Failed to rename:', err)
           }
         })
 
@@ -50,7 +54,7 @@ function handle(req, res) {
 
         redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
       } catch (err) {
-        console.log('😵 Failed to parse form:', err, '\n')
+        console.log(prefix.bad, 'Failed to parse form:', err, '\n')
         redirect({ to: '/' })
       }
     }
