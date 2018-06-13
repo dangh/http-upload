@@ -11,8 +11,12 @@ const IP_ADDR = ip.address()
 const PORT = Number(process.argv[2]) || 8989
 const UPLOAD_DIR = './'
 
+let prefix = require('os').platform() === 'win32'
+  ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
+  : { good: '🌵', bad: '😵' }
+
 http.createServer(handle).listen(PORT)
-console.log(`\n🌵 Serving on http://${IP_ADDR}:${PORT}`, '\n')
+console.log(`\n${prefix.good} Serving on http://${IP_ADDR}:${PORT}`, '\n')
 
 function handle(req, res) {
   ;({
@@ -38,10 +42,10 @@ function handle(req, res) {
         let tasks = uploadedFiles.map(async file => {
           try {
             let path = await saveFile(file, UPLOAD_DIR)
-            console.log('🌵 File uploaded:', path)
+            console.log(prefix.good, 'File uploaded:', path)
             successCount++
           } catch (err) {
-            console.log('😵 Failed to rename:', err)
+            console.log(prefix.bad, 'Failed to rename:', err)
           }
         })
 
@@ -50,7 +54,7 @@ function handle(req, res) {
 
         redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
       } catch (err) {
-        console.log('😵 Failed to parse form:', err, '\n')
+        console.log(prefix.bad, 'Failed to parse form:', err, '\n')
         redirect({ to: '/' })
       }
     }
@@ -127,17 +131,108 @@ function html({ uploadedCount /*: number */ }) /*: string */ {
     function emojiToDataUri(emoji, size) {
       size = size || 32
 
-      const canvas = document.createElement('canvas')
-      canvas.width = size
-      canvas.height = size
+      // draw emoji on a big canvas
+      // then trim transparent pixels
+      // scale to make sure the image is fully visible
 
-      const context = canvas.getContext('2d')
-      context.font = size + 'px sans-serif'
+      let canvasSize = size * 2
+      let fontSize = size * 1.5
+      let canvas = document.createElement('canvas')
+      canvas.width = canvasSize
+      canvas.height = canvasSize
+      let context = canvas.getContext('2d')
+      context.font = fontSize + 'px sans-serif'
       context.textAlign = 'center'
-      context.textBaseline = 'top'
-      context.fillText(emoji, size / 2, 0)
+      context.textBaseline = 'middle'
+      context.fillText(emoji, canvasSize / 2, canvasSize / 2)
+      let imageData = context.getImageData(0, 0, canvas.width, canvas.height)
 
-      return canvas.toDataURL()
+      imageData = trimTransparent(imageData)
+      imageData = resizeToFit(imageData, size, size)
+
+      return getContext(imageData).canvas.toDataURL()
+    }
+
+    function resizeToFit(imageData, width, height) {
+      let scaleFactor = Math.min(width / imageData.width, height / imageData.height)
+
+      let imageCanvas = getContext(imageData).canvas
+
+      let scaleCanvas = document.createElement('canvas')
+      scaleCanvas.width = imageData.width * scaleFactor
+      scaleCanvas.height = imageData.height * scaleFactor
+      let context = scaleCanvas.getContext('2d')
+      context.scale(scaleFactor, scaleFactor)
+      context.drawImage(imageCanvas, 0, 0)
+
+      let fitCanvas = document.createElement('canvas')
+      fitCanvas.width = width
+      fitCanvas.height = height
+      let fitContext = fitCanvas.getContext('2d')
+      let x = (width - scaleCanvas.width) / 2
+      let y = (height - scaleCanvas.height) / 2
+      fitContext.drawImage(scaleCanvas, x, y)
+
+      return fitContext.getImageData(0, 0, width, height)
+    }
+
+    function trimTransparent(imageData) {
+      let pixels = imageData.data
+      let bound = {
+        top: null,
+        left: null,
+        right: null,
+        bottom: null
+      }
+
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] !== 0) {
+          let x = (i / 4) % imageData.width
+          let y = ~~(i / 4 / imageData.width)
+
+          if (bound.top === null) {
+            bound.top = y
+          }
+
+          if (bound.left === null) {
+            bound.left = x
+          } else if (x < bound.left) {
+            bound.left = x
+          }
+
+          if (bound.right === null) {
+            bound.right = x
+          } else if (bound.right < x) {
+            bound.right = x
+          }
+
+          if (bound.bottom === null) {
+            bound.bottom = y
+          } else if (bound.bottom < y) {
+            bound.bottom = y
+          }
+        }
+      }
+
+      let trimHeight = bound.bottom - bound.top + 1
+      let trimWidth = bound.right - bound.left + 1
+      let trimmed = getContext(imageData).getImageData(
+        bound.left,
+        bound.top,
+        trimWidth,
+        trimHeight
+      )
+
+      return trimmed
+    }
+
+    function getContext(imageData) {
+      let canvas = document.createElement('canvas')
+      canvas.width = imageData.width
+      canvas.height = imageData.height
+      let context = canvas.getContext('2d')
+      context.putImageData(imageData, 0, 0)
+      return context
     }
 
     function setFavicon(src) {
