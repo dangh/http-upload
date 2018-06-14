@@ -2,9 +2,12 @@
   "name": "cactus",
   "version": "1.0.0",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
-  "bin": "bin/cactus.js",
+  "bin": {
+    "up": "bin/cli.js",
+    "cactus": "bin/cli.js"
+  },
   "scripts": {
-    "start": "node ./bin/cactus.js"
+    "start": "node ./bin/cli.js"
   },
   "license": "MIT",
   "homepage": "https://github.com/dangh/cactus",
