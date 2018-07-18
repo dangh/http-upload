@@ -6,63 +6,149 @@ const url = require('url')
 const fs = require('fs')
 const path = require('path')
 const { IncomingForm } = require('formidable')
+const meow = require('meow')
+const bonjour = require('bonjour')({ loopback: false, reuseAddr: true })
+const opn = require('opn')
+const ora = require('ora')
 
-const IP_ADDR = ip.address()
-const PORT = Number(process.argv[2]) || 8989
-const UPLOAD_DIR = './'
+const cli = meow(
+  `
+  Usage
+    $ cactus <command> [options]
 
-let prefix = require('os').platform() === 'win32'
-  ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
-  : { good: '🌵', bad: '😵' }
+  Commands
+    up     Run new cactus server server
+    find   Find cactus server in local network and open it in the default browser
 
-http.createServer(handle).listen(PORT)
-console.log(`\n${prefix.good} Serving on http://${IP_ADDR}:${PORT}`, '\n')
+  Options
+    --port, -p   Run cactus on a specific port (default 8989)
+    --dir, -d    Upload directory
 
-function handle(req, res) {
-  ;({
-    GET: () => {
-      let uploadedCount = Number(url.parse(req.url, true).query['🌵'])
-      res.writeHead(200, {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: 0
-      })
-      res.end(html({ uploadedCount }))
-    },
-    POST: async () => {
-      let redirect = ({ to }) => {
-        res.writeHead(302, { Location: to })
-        res.end()
-      }
-
-      try {
-        let successCount = 0
-        let uploadedFiles = await getUploadedFiles(req)
-
-        let tasks = uploadedFiles.map(async file => {
-          try {
-            let path = await saveFile(file, UPLOAD_DIR)
-            console.log(prefix.good, 'File uploaded:', path)
-            successCount++
-          } catch (err) {
-            console.log(prefix.bad, 'Failed to rename:', err)
-          }
-        })
-
-        await Promise.all(tasks)
-        console.log(/* extra line break */)
-
-        redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
-      } catch (err) {
-        console.log(prefix.bad, 'Failed to parse form:', err, '\n')
-        redirect({ to: '/' })
+  Example
+    $ cactus up -p 8080
+    $ cactus find
+`,
+  {
+    flags: {
+      port: {
+        type: 'number',
+        alias: 'p',
+        default: 8989
+      },
+      dir: {
+        alias: 'd',
+        default: './'
       }
     }
-  }[req.method]())
+  }
+)
+
+let prefix =
+  require('os').platform() === 'win32'
+    ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
+    : { good: '🌵', bad: '😵' }
+
+let port_suffix = port => (port === 80 ? '' : `:${port}`)
+
+function up({ port: PORT, dir: UPLOAD_DIR }) {
+  const IP_ADDR = ip.address()
+
+  http
+    .createServer((req, res) => {
+      ;({
+        GET: () => {
+          let uploadedCount = Number(url.parse(req.url, true).query['🌵'])
+          res.writeHead(200, {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: 0
+          })
+          res.end(html({ uploadedCount }))
+        },
+        POST: async () => {
+          let redirect = ({ to }) => {
+            res.writeHead(302, { Location: to })
+            res.end()
+          }
+
+          try {
+            let successCount = 0
+            let uploadedFiles = await getUploadedFiles(req)
+
+            let tasks = uploadedFiles.map(async file => {
+              try {
+                let path = await saveFile(file, UPLOAD_DIR)
+                console.log(prefix.good, 'File uploaded:', path)
+                successCount++
+              } catch (err) {
+                console.log(prefix.bad, 'Failed to rename:', err)
+              }
+            })
+
+            await Promise.all(tasks)
+            console.log(/* extra line break */)
+
+            redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
+          } catch (err) {
+            console.log(prefix.bad, 'Failed to parse form:', err, '\n')
+            redirect({ to: '/' })
+          }
+        }
+      }[req.method]())
+    })
+    .listen(PORT)
+
+  bonjour.publish({
+    name: 'cactus',
+    port: PORT,
+    type: 'http',
+    protocol: 'tcp',
+    txt: {
+      name: 'cactus'
+    }
+  })
+
+  console.log(
+    `\n${prefix.good} Serving on http://${IP_ADDR}${port_suffix(PORT)}`,
+    '\n'
+  )
+}
+
+function find() {
+  console.log('')
+
+  let spinner = ora('Finding cactus').start()
+
+  bonjour.findOne(
+    {
+      type: 'http',
+      protocol: 'tcp',
+      txt: {
+        name: 'cactus'
+      }
+    },
+    info => {
+      let url = `http://${info.referer.address}${port_suffix(info.port)}`
+      spinner.succeed(`Found ${prefix.good} on ${url}`)
+      opn(url)
+      bonjour.destroy()
+      process.exit(0)
+    }
+  )
+}
+
+let command = cli.input[0] || 'up'
+switch (command) {
+  case 'find':
+    return find()
+  case 'up':
+  default:
+    return up(cli.flags)
 }
 
 function html({ uploadedCount /*: number */ }) /*: string */ {
-  let resultMessage = uploadedCount > 0 ? `<b>${uploadedCount}</b> files uploaded.` : ''
+  let resultMessage =
+    uploadedCount > 0 ? `<b>${uploadedCount}</b> files uploaded.` : ''
 
   return /* syntax: html */ `
 <!DOCTYPE html>
