@@ -1,6 +1,6 @@
 {
   "name": "cactus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple command line utility that allows uploading files to the current directory via http.",
   "bin": {
     "up": "bin/cli.js",
@@ -12,7 +12,11 @@
   "license": "MIT",
   "homepage": "https://github.com/dangh/cactus",
   "dependencies": {
+    "bonjour": "^3.5.0",
     "formidable": "^1.2.1",
-    "ip": "^1.1.5"
+    "ip": "^1.1.5",
+    "meow": "^5.0.0",
+    "opn": "^5.3.0",
+    "ora": "^3.0.0"
   }
 }
