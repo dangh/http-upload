@@ -73,7 +73,7 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
 
           try {
             let successCount = 0
-            let uploadedFiles = await getUploadedFiles(req)
+            let uploadedFiles = await getUploadedFiles(req, UPLOAD_DIR)
 
             let tasks = uploadedFiles.map(async file => {
               try {
@@ -355,8 +355,8 @@ function html({ uploadedCount /*: number */ }) /*: string */ {
 `
 }
 
-function getUploadedFiles(req) /*: Promise<Array<File>> */ {
-  let form = new IncomingForm({ multiples: true })
+function getUploadedFiles(req, uploadDir) /*: Promise<Array<File>> */ {
+  let form = new IncomingForm({ multiples: true, uploadDir })
 
   return new Promise((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
