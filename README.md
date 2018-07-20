@@ -1,4 +1,4 @@
-# cactus
+# 🌵 cactus
 
 Simple command line utility that allows uploading files to the current directory via http.
 
@@ -12,4 +12,5 @@ npm install dangh/cactus -g
 
 ```
 cactus 5000
+cactus find
 ```
