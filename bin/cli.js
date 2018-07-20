@@ -10,6 +10,7 @@ const meow = require('meow')
 const bonjour = require('bonjour')({ loopback: false, reuseAddr: true })
 const opn = require('opn')
 const ora = require('ora')
+const qrcode = require('qrcode-terminal')
 
 const cli = meow(
   `
@@ -43,7 +44,7 @@ const cli = meow(
   }
 )
 
-let prefix =
+let ICON =
   require('os').platform() === 'win32'
     ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
     : { good: '🌵', bad: '😵' }
@@ -78,10 +79,10 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
             let tasks = uploadedFiles.map(async file => {
               try {
                 let path = await saveFile(file, UPLOAD_DIR)
-                console.log(prefix.good, 'File uploaded:', path)
+                console.log(ICON.good, 'File uploaded:', path)
                 successCount++
               } catch (err) {
-                console.log(prefix.bad, 'Failed to rename:', err)
+                console.log(ICON.bad, 'Failed to rename:', err)
               }
             })
 
@@ -90,7 +91,7 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
 
             redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
           } catch (err) {
-            console.log(prefix.bad, 'Failed to parse form:', err, '\n')
+            console.log(ICON.bad, 'Failed to parse form:', err, '\n')
             redirect({ to: '/' })
           }
         }
@@ -108,10 +109,22 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
     }
   })
 
-  console.log(
-    `\n${prefix.good} Serving on http://${IP_ADDR}${port_suffix(PORT)}`,
-    '\n'
+  let serverUrl = `http://${IP_ADDR}${port_suffix(PORT)}`
+
+  console.log(`\n${ICON.good} Serving on ${serverUrl}\n`)
+
+  qrcode.generate(serverUrl, { small: true }, code =>
+    console.log(code.replace(/^|\n/g, '$&\t'))
   )
+
+  process.on('SIGINT', bye)
+  process.on('SIGUSR1', bye)
+  process.on('SIGUSR2', bye)
+}
+
+function bye() {
+  console.log(`\n${ICON.good} Bye`)
+  process.exit()
 }
 
 function find() {
@@ -128,9 +141,9 @@ function find() {
       }
     },
     info => {
-      let url = `http://${info.referer.address}${port_suffix(info.port)}`
-      spinner.succeed(`Found ${prefix.good} on ${url}`)
-      opn(url)
+      let serverUrl = `http://${info.referer.address}${port_suffix(info.port)}`
+      spinner.succeed(`Open ${ICON.good} on ${serverUrl}`)
+      opn(serverUrl)
       bonjour.destroy()
       process.exit(0)
     }
