@@ -106,10 +106,8 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
     name: 'cactus',
     port: PORT,
     type: 'http',
-    protocol: 'tcp',
-    txt: {
-      name: 'cactus'
-    }
+    subtypes: ['cactus'],
+    protocol: 'tcp'
   })
 
   let serverUrl = `http://${IP_ADDR}${port_suffix(PORT)}`
@@ -139,10 +137,8 @@ function find() {
   bonjourBrowser.findOne(
     {
       type: 'http',
-      protocol: 'tcp',
-      txt: {
-        name: 'cactus'
-      }
+      subtypes: ['cactus'],
+      protocol: 'tcp'
     },
     info => {
       let serverUrl = `http://${info.referer.address}${port_suffix(info.port)}`
