@@ -7,7 +7,7 @@ const fs = require('fs')
 const path = require('path')
 const { IncomingForm } = require('formidable')
 const meow = require('meow')
-const bonjour = require('bonjour')({ loopback: false, reuseAddr: true })
+const bonjour = require('bonjour')
 const opn = require('opn')
 const ora = require('ora')
 const qrcode = require('qrcode-terminal')
@@ -18,12 +18,14 @@ const cli = meow(
     $ cactus <command> [options]
 
   Commands
-    up     Run new cactus server server
-    find   Find cactus server in local network and open it in the default browser
+    up             Run new cactus server server
+    find           Find cactus server in local network and open it in the default browser
+    create-menu    Create context menu (Windows only)
+    remove-menu    Remove context menu (Windows only)
 
   Options
-    --port, -p   Run cactus on a specific port (default 8989)
-    --dir, -d    Upload directory
+    --port, -p     Run cactus on a specific port (default 8989)
+    --dir, -d      Upload directory
 
   Example
     $ cactus up -p 8080
@@ -45,7 +47,7 @@ const cli = meow(
 )
 
 let ICON =
-  require('os').platform() === 'win32'
+  process.platform === 'win32'
     ? { good: '\x1b[32minfo\x1b[0m', bad: '\x1b[31minfo\x1b[0m' }
     : { good: '🌵', bad: '😵' }
 
@@ -99,7 +101,8 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
     })
     .listen(PORT)
 
-  bonjour.publish({
+  let bonjourService = bonjour({ loopback: false, reuseAddr: true })
+  bonjourService.publish({
     name: 'cactus',
     port: PORT,
     type: 'http',
@@ -132,7 +135,8 @@ function find() {
 
   let spinner = ora('Finding cactus').start()
 
-  bonjour.findOne(
+  let bonjourBrowser = bonjour({ loopback: false, reuseAddr: true })
+  bonjourBrowser.findOne(
     {
       type: 'http',
       protocol: 'tcp',
@@ -144,7 +148,7 @@ function find() {
       let serverUrl = `http://${info.referer.address}${port_suffix(info.port)}`
       spinner.succeed(`Open ${ICON.good} on ${serverUrl}`)
       opn(serverUrl)
-      bonjour.destroy()
+      bonjourBrowser.destroy()
       process.exit(0)
     }
   )
@@ -152,11 +156,16 @@ function find() {
 
 let command = cli.input[0] || 'up'
 switch (command) {
+  case 'create-menu':
+    return require('./context-menu').register()
+  case 'remove-menu':
+    return require('./context-menu').unregister()
   case 'find':
     return find()
   case 'up':
-  default:
     return up(cli.flags)
+  default:
+    console.log(command, 'is not supported!')
 }
 
 function html({ uploadedCount /*: number */ }) /*: string */ {
