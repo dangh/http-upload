@@ -6,6 +6,7 @@ Simple command line utility that allows uploading files to the current directory
 
 ```
 npm install dangh/cactus -g
+cactus create-menu
 ```
 
 # Usage
