@@ -57,47 +57,44 @@ function up({ port: PORT, dir: UPLOAD_DIR }) {
   const IP_ADDR = ip.address()
 
   http
-    .createServer((req, res) => {
-      ;({
-        GET: () => {
-          let uploadedCount = Number(url.parse(req.url, true).query['🌵'])
-          res.writeHead(200, {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            Pragma: 'no-cache',
-            Expires: 0
-          })
-          res.end(html({ uploadedCount }))
-        },
-        POST: async () => {
-          let redirect = ({ to }) => {
-            res.writeHead(302, { Location: to })
-            res.end()
-          }
-
-          try {
-            let successCount = 0
-            let uploadedFiles = await getUploadedFiles(req, UPLOAD_DIR)
-
-            let tasks = uploadedFiles.map(async file => {
-              try {
-                let path = await saveFile(file, UPLOAD_DIR)
-                console.log(ICON.good, 'File uploaded:', path)
-                successCount++
-              } catch (err) {
-                console.log(ICON.bad, 'Failed to rename:', err)
-              }
-            })
-
-            await Promise.all(tasks)
-            console.log(/* extra line break */)
-
-            redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
-          } catch (err) {
-            console.log(ICON.bad, 'Failed to parse form:', err, '\n')
-            redirect({ to: '/' })
-          }
+    .createServer(async (req, res) => {
+      if (req.method == 'GET') {
+        let uploadedCount = Number(url.parse(req.url, true).query['🌵'])
+        res.writeHead(200, {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: 0
+        })
+        res.end(html({ uploadedCount }))
+      } else if (req.method == 'POST') {
+        let redirect = ({ to }) => {
+          res.writeHead(302, { Location: to })
+          res.end()
         }
-      }[req.method]())
+
+        try {
+          let successCount = 0
+          let uploadedFiles = await getUploadedFiles(req, UPLOAD_DIR)
+
+          let tasks = uploadedFiles.map(async file => {
+            try {
+              let path = await saveFile(file, UPLOAD_DIR)
+              console.log(ICON.good, 'File uploaded:', path)
+              successCount++
+            } catch (err) {
+              console.log(ICON.bad, 'Failed to rename:', err)
+            }
+          })
+
+          await Promise.all(tasks)
+          console.log(/* extra line break */)
+
+          redirect({ to: `/?${encodeURIComponent('🌵')}=${successCount}` })
+        } catch (err) {
+          console.log(ICON.bad, 'Failed to parse form:', err, '\n')
+          redirect({ to: '/' })
+        }
+      }
     })
     .listen(PORT)
 
